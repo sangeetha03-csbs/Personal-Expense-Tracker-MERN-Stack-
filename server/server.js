@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 
 const express = require('express');
@@ -10,24 +11,27 @@ const Transaction = require('./Transaction');
 app.use(cors());
 app.use(express.json());
 
-// Check whether Render receives the MongoDB URI.
-// This does NOT print your password.
+// Check if Render receives the MongoDB connection string
+console.log(
+  'MONGODB_URI loaded:',
+  Boolean(process.env.MONGODB_URI)
+);
 
-console.log('MONGODB_URI loaded:', Boolean(process.env.MONGODB_URI));
+// Connect to MongoDB Atlas on Render
+const mongoURI = process.env.MONGODB_URI;
 
-// Connect to MongoDB
-const mongoURI =
-  process.env.MONGODB_URI ||
-  'mongodb://127.0.0.1:27017/expenseTracker';
-
-mongoose
-  .connect(mongoURI)
-  .then(() => {
-    console.log('MongoDB connected successfully');
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
-  });
+if (!mongoURI) {
+  console.error('MONGODB_URI is missing in Environment Variables!');
+} else {
+  mongoose
+    .connect(mongoURI)
+    .then(() => {
+      console.log('MongoDB connected successfully');
+    })
+    .catch((err) => {
+      console.error('MongoDB connection error:', err.message);
+    });
+}
 
 // Home route
 app.get('/', (req, res) => {
@@ -113,4 +117,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-```
