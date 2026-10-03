@@ -13,28 +13,35 @@ function App() {
   const [filterCategory, setFilterCategory] = useState('All')
   const [loading, setLoading] = useState(true)
 
+  // Backend API URL
+  const API_URL =
+    'https://personal-expense-tracker-mern-stack.onrender.com'
+
   // Load saved transactions from MongoDB
   useEffect(() => {
     async function loadTransactions() {
       try {
         const response = await fetch(
-          'https://personal-expense-tracker-mern-stack.onrender.com/transactions'
+          `${API_URL}/transactions`
         )
 
         if (!response.ok) {
-  const errorData = await response.json().catch(() => ({}));
+          const errorData = await response.json().catch(() => ({}))
 
-  throw new Error(
-    errorData.message || `Server error: ${response.status}`
-  );
-}
+          throw new Error(
+            errorData.message ||
+              `Server error: ${response.status}`
+          )
+        }
 
         const data = await response.json()
         setTransactions(data)
-      } } catch (error) {
-  console.error('Save transaction error:', error);
-  alert('Unable to save transaction: ' + error.message);
-} finally {
+      } catch (error) {
+        console.error('Load transactions error:', error)
+        alert(
+          'Unable to load transactions: ' + error.message
+        )
+      } finally {
         setLoading(false)
       }
     }
@@ -56,7 +63,7 @@ function App() {
 
     try {
       const response = await fetch(
-        'https://personal-expense-tracker-mern-stack.onrender.com/transactions',
+        `${API_URL}/transactions`,
         {
           method: 'POST',
           headers: {
@@ -67,14 +74,19 @@ function App() {
       )
 
       if (!response.ok) {
-        throw new Error('Could not save transaction')
+        const errorData = await response.json().catch(() => ({}))
+
+        throw new Error(
+          errorData.message ||
+            `Server error: ${response.status}`
+        )
       }
 
       const savedTransaction = await response.json()
 
       setTransactions((previous) => [
-        ...previous,
         savedTransaction,
+        ...previous,
       ])
 
       setAmount('')
@@ -82,9 +94,14 @@ function App() {
       setDescription('')
       setType('Expense')
       setDate(new Date().toISOString().slice(0, 10))
+
+      alert('Transaction saved successfully!')
     } catch (error) {
-      console.error(error)
-      alert('Unable to save transaction. Check your backend.')
+      console.error('Save transaction error:', error)
+
+      alert(
+        'Unable to save transaction: ' + error.message
+      )
     }
   }
 
@@ -113,7 +130,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `https://personal-expense-tracker-mern-stack.onrender.com/transactions/${item._id}`,
+        `${API_URL}/transactions/${item._id}`,
         {
           method: 'PUT',
           headers: {
@@ -127,7 +144,12 @@ function App() {
       )
 
       if (!response.ok) {
-        throw new Error('Could not update transaction')
+        const errorData = await response.json().catch(() => ({}))
+
+        throw new Error(
+          errorData.message ||
+            `Server error: ${response.status}`
+        )
       }
 
       const updatedTransaction = await response.json()
@@ -139,9 +161,14 @@ function App() {
             : transaction
         )
       )
+
+      alert('Transaction updated successfully!')
     } catch (error) {
-      console.error(error)
-      alert('Could not edit transaction. Check your backend.')
+      console.error('Edit transaction error:', error)
+
+      alert(
+        'Unable to edit transaction: ' + error.message
+      )
     }
   }
 
@@ -151,33 +178,55 @@ function App() {
 
     try {
       const response = await fetch(
-        `https://personal-expense-tracker-mern-stack.onrender.com/transactions/${id}`,
-        { method: 'DELETE' }
+        `${API_URL}/transactions/${id}`,
+        {
+          method: 'DELETE',
+        }
       )
 
       if (!response.ok) {
-        throw new Error('Could not delete transaction')
+        const errorData = await response.json().catch(() => ({}))
+
+        throw new Error(
+          errorData.message ||
+            `Server error: ${response.status}`
+        )
       }
 
       setTransactions((previous) =>
         previous.filter((item) => item._id !== id)
       )
+
+      alert('Transaction deleted successfully!')
     } catch (error) {
-      console.error(error)
-      alert('Could not delete transaction. Check your backend.')
+      console.error('Delete transaction error:', error)
+
+      alert(
+        'Unable to delete transaction: ' + error.message
+      )
     }
   }
 
+  // Calculate income
   const totalIncome = transactions
     .filter((item) => item.type === 'Income')
-    .reduce((total, item) => total + Number(item.amount), 0)
+    .reduce(
+      (total, item) => total + Number(item.amount),
+      0
+    )
 
+  // Calculate expenses
   const totalExpenses = transactions
     .filter((item) => item.type === 'Expense')
-    .reduce((total, item) => total + Number(item.amount), 0)
+    .reduce(
+      (total, item) => total + Number(item.amount),
+      0
+    )
 
+  // Calculate balance
   const balance = totalIncome - totalExpenses
 
+  // Filter transactions by category
   const filteredTransactions = transactions.filter(
     (item) =>
       filterCategory === 'All' ||
@@ -233,10 +282,13 @@ function App() {
             <label className="form-label">
               Transaction Type
             </label>
+
             <select
               className="form-select"
               value={type}
-              onChange={(event) => setType(event.target.value)}
+              onChange={(event) =>
+                setType(event.target.value)
+              }
             >
               <option>Expense</option>
               <option>Income</option>
@@ -245,11 +297,14 @@ function App() {
 
           <div className="mb-3">
             <label className="form-label">Amount (₹)</label>
+
             <input
               type="number"
               className="form-control"
               value={amount}
-              onChange={(event) => setAmount(event.target.value)}
+              onChange={(event) =>
+                setAmount(event.target.value)
+              }
               placeholder="Enter amount"
               min="0.01"
               step="0.01"
@@ -259,21 +314,27 @@ function App() {
 
           <div className="mb-3">
             <label className="form-label">Date</label>
+
             <input
               type="date"
               className="form-control"
               value={date}
-              onChange={(event) => setDate(event.target.value)}
+              onChange={(event) =>
+                setDate(event.target.value)
+              }
               required
             />
           </div>
 
           <div className="mb-3">
             <label className="form-label">Category</label>
+
             <select
               className="form-select"
               value={category}
-              onChange={(event) => setCategory(event.target.value)}
+              onChange={(event) =>
+                setCategory(event.target.value)
+              }
               required
             >
               <option value="">Select category</option>
@@ -288,6 +349,7 @@ function App() {
 
           <div className="mb-3">
             <label className="form-label">Description</label>
+
             <input
               type="text"
               className="form-control"
@@ -299,7 +361,10 @@ function App() {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary">
+          <button
+            type="submit"
+            className="btn btn-primary"
+          >
             Add Transaction
           </button>
         </form>
@@ -307,12 +372,15 @@ function App() {
 
       {/* Transaction history */}
       <div className="card shadow-sm border-0 p-4">
-        <h3 className="fw-bold mb-3">Transaction History</h3>
+        <h3 className="fw-bold mb-3">
+          Transaction History
+        </h3>
 
         <div className="mb-3">
           <label className="form-label">
             Filter by Category
           </label>
+
           <select
             className="form-select"
             value={filterCategory}
@@ -334,7 +402,12 @@ function App() {
           <p>Loading transactions...</p>
         ) : transactions.length === 0 ? (
           <p className="text-secondary mb-0">
-            No transactions yet. Add your first transaction above.
+            No transactions yet. Add your first transaction
+            above.
+          </p>
+        ) : filteredTransactions.length === 0 ? (
+          <p className="text-secondary mb-0">
+            No transactions found for this category.
           </p>
         ) : (
           <div className="table-responsive">
@@ -357,6 +430,7 @@ function App() {
                     <td>{item.category}</td>
                     <td>{item.description || '-'}</td>
                     <td>{item.date || '-'}</td>
+
                     <td
                       className={`text-end fw-bold ${
                         item.type === 'Income'
@@ -365,8 +439,11 @@ function App() {
                       }`}
                     >
                       {item.type === 'Income' ? '+' : '-'}₹
-                      {Number(item.amount).toLocaleString('en-IN')}
+                      {Number(item.amount).toLocaleString(
+                        'en-IN'
+                      )}
                     </td>
+
                     <td>
                       <button
                         type="button"
@@ -379,7 +456,9 @@ function App() {
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-danger mb-1"
-                        onClick={() => deleteTransaction(item._id)}
+                        onClick={() =>
+                          deleteTransaction(item._id)
+                        }
                       >
                         Delete
                       </button>
