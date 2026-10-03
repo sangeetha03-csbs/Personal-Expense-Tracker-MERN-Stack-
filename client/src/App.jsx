@@ -18,19 +18,23 @@ function App() {
     async function loadTransactions() {
       try {
         const response = await fetch(
-          'http://localhost:5000/transactions'
+          'https://personal-expense-tracker-mern-stack.onrender.com/transactions'
         )
 
         if (!response.ok) {
-          throw new Error('Could not load transactions')
-        }
+  const errorData = await response.json().catch(() => ({}));
+
+  throw new Error(
+    errorData.message || `Server error: ${response.status}`
+  );
+}
 
         const data = await response.json()
         setTransactions(data)
-      } catch (error) {
-        console.error(error)
-        alert('Could not load transactions. Check your backend.')
-      } finally {
+      } } catch (error) {
+  console.error('Save transaction error:', error);
+  alert('Unable to save transaction: ' + error.message);
+} finally {
         setLoading(false)
       }
     }
@@ -52,7 +56,7 @@ function App() {
 
     try {
       const response = await fetch(
-        'http://localhost:5000/transactions',
+        'https://personal-expense-tracker-mern-stack.onrender.com/transactions',
         {
           method: 'POST',
           headers: {
@@ -109,7 +113,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/transactions/${item._id}`,
+        `https://personal-expense-tracker-mern-stack.onrender.com/transactions/${item._id}`,
         {
           method: 'PUT',
           headers: {
@@ -147,7 +151,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/transactions/${id}`,
+        `https://personal-expense-tracker-mern-stack.onrender.com/transactions/${id}`,
         { method: 'DELETE' }
       )
 
