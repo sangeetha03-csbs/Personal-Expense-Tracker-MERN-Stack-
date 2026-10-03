@@ -1,3 +1,4 @@
+require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -9,19 +10,31 @@ const Transaction = require('./Transaction');
 app.use(cors());
 app.use(express.json());
 
+// Check whether Render receives the MongoDB URI.
+// This does NOT print your password.
+
+console.log('MONGODB_URI loaded:', Boolean(process.env.MONGODB_URI));
+
 // Connect to MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/expenseTracker')
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch((error) =>
-    console.log('MongoDB connection error:', error)
-  );
+const mongoURI =
+  process.env.MONGODB_URI ||
+  'mongodb://127.0.0.1:27017/expenseTracker';
 
+mongoose
+  .connect(mongoURI)
+  .then(() => {
+    console.log('MongoDB connected successfully');
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
 
+// Home route
 app.get('/', (req, res) => {
   res.send('Expense Tracker Backend is running!');
 });
 
-
+// Get all transactions
 app.get('/transactions', async (req, res) => {
   try {
     const transactions = await Transaction.find().sort({ _id: -1 });
@@ -31,7 +44,7 @@ app.get('/transactions', async (req, res) => {
   }
 });
 
-
+// Add a transaction
 app.post('/transactions', async (req, res) => {
   try {
     const transaction = new Transaction(req.body);
@@ -42,7 +55,7 @@ app.post('/transactions', async (req, res) => {
   }
 });
 
-
+// Update a transaction
 app.put('/transactions/:id', async (req, res) => {
   try {
     const transaction = await Transaction.findByIdAndUpdate(
@@ -67,13 +80,12 @@ app.put('/transactions/:id', async (req, res) => {
   }
 });
 
+// Test route
 app.put('/test', (req, res) => {
   res.send('PUT route is working!');
 });
-app.listen(5000, () => {
-  console.log('Server running on port 5000');
-});
 
+// Delete a transaction
 app.delete('/transactions/:id', async (req, res) => {
   try {
     const transaction = await Transaction.findByIdAndDelete(
@@ -86,9 +98,19 @@ app.delete('/transactions/:id', async (req, res) => {
       });
     }
 
-    res.json({ message: 'Transaction deleted successfully' });
+    res.json({
+      message: 'Transaction deleted successfully'
+    });
   } catch (error) {
     console.log('Delete error:', error);
     res.status(400).json({ message: error.message });
   }
 });
+
+// Start server
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
